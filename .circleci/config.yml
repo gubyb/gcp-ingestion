@@ -152,7 +152,7 @@ jobs:
       run:
         name: Maven Test
         command: |
-          mvn clean test
+          mvn clean test -DtrimStackTrace=false
     - *report_code_coverage
     - save_cache:
         paths:
@@ -185,7 +185,7 @@ jobs:
         command: |
           export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp.json"
           echo "$GCLOUD_SERVICE_KEY" > "$GOOGLE_APPLICATION_CREDENTIALS"
-          mvn clean test -Dtest=*IntegrationTest -DfailIfNoTests=false
+          mvn clean test -Dtest=*IntegrationTest -DfailIfNoTests=false -DtrimStackTrace=false
     - *report_code_coverage
     # We don't save_cache here; we let the ingestion-beam job cover that.
 

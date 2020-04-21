@@ -1,7 +1,10 @@
 package com.mozilla.telemetry.ingestion.sink.io;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 
+import com.google.common.io.Resources;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 import com.mozilla.telemetry.ingestion.sink.util.SinglePubsubTopic;
@@ -13,6 +16,8 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
+import org.junit.contrib.java.lang.system.SystemErrRule;
 
 public class PubsubReadIntegrationTest {
 
@@ -21,6 +26,13 @@ public class PubsubReadIntegrationTest {
 
   @Rule
   public final SinglePubsubTopic pubsub = new SinglePubsubTopic();
+
+  @Rule
+  public final SystemErrRule stderr = new SystemErrRule();
+
+  @Rule
+  public final ProvideSystemProperty loggingConfig = new ProvideSystemProperty(
+      "java.util.logging.config.file", Resources.getResource("logging.properties").getPath());
 
   @Test
   public void canReadOneMessage() {
@@ -48,7 +60,10 @@ public class PubsubReadIntegrationTest {
 
   @Test
   public void canRetryOnException() {
-    System.err.println("Causing Exception Warning...");
+    // capture error log
+    stderr.mute();
+    stderr.enableLog();
+
     String messageId = pubsub.publish(TEST_MESSAGE);
 
     List<PubsubMessage> received = new LinkedList<>();
@@ -76,5 +91,6 @@ public class PubsubReadIntegrationTest {
     assertEquals(messageId, received.get(0).getMessageId());
     assertEquals(messageId, received.get(1).getMessageId());
     assertEquals(2, received.size());
+    assertThat(stderr.getLog(), containsString("java.lang.RuntimeException: test"));
   }
 }

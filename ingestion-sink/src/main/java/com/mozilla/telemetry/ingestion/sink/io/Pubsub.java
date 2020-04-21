@@ -27,7 +27,7 @@ public class Pubsub {
 
   public static class Read {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Read.class);
+    private final Logger logger;
 
     @VisibleForTesting
     public Subscriber subscriber;
@@ -36,16 +36,18 @@ public class Pubsub {
     public <T> Read(String subscriptionName, Function<PubsubMessage, CompletableFuture<T>> output,
         Function<Subscriber.Builder, Subscriber.Builder> config,
         Function<PubsubMessage, PubsubMessage> decompress, Executor executor) {
+      // initialize logging during constructor to pick up runtime config changes
+      logger = LoggerFactory.getLogger(Read.class);
       ProjectSubscriptionName subscription = ProjectSubscriptionName.parse(subscriptionName);
       subscriber = config.apply(Subscriber.newBuilder(subscription,
           (message, consumer) -> CompletableFuture.completedFuture(message)
               .thenApplyAsync(decompress, executor).thenComposeAsync(output, executor)
-              .whenCompleteAsync((result, exception) -> {
-                if (exception == null) {
+              .whenCompleteAsync((result, thrown) -> {
+                if (thrown == null) {
                   consumer.ack();
                 } else {
                   // exception is always a CompletionException caused by the real exception
-                  LOG.warn("Exception while attempting to deliver message", exception.getCause());
+                  logger.warn("Exception while attempting to deliver message", thrown.getCause());
                   consumer.nack();
                 }
               }, executor)))

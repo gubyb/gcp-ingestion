@@ -14,4 +14,4 @@ RUN mvn package
 
 FROM base
 COPY --from=build /app/ingestion-sink/target/*.jar /app/ingestion-sink/target/
-CMD exec java $JAVA_OPTS -jar /app/ingestion-sink/target/*with-dependencies.jar
+CMD exec java -Djava.util.logging.config.file=/app/ingestion-sink/src/main/resources/logging.properties $JAVA_OPTS -jar /app/ingestion-sink/target/*with-dependencies.jar

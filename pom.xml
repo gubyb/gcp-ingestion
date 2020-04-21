@@ -119,6 +119,11 @@
             <artifactId>avro</artifactId>
             <version>${avro.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.30</version>
+        </dependency>
         <!-- Following https://github.com/apache/beam/blob/v2.6.0/examples/java/build.gradle#L64 -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -129,6 +134,12 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.13</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.stefanbirkner</groupId>
+            <artifactId>system-rules</artifactId>
+            <version>1.19.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -248,7 +259,7 @@
                     <systemProperties>
                         <property>
                             <name>java.util.logging.config.file</name>
-                            <value>src/test/resources/logging.properties</value>
+                            <value>${project.build.testOutputDirectory}/logging.properties</value>
                         </property>
                     </systemProperties>
                 </configuration>
